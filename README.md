@@ -1,0 +1,2 @@
+# architectural_reconfiguration_platform
+Repository for Architectural Reconfiguration Platform paper
