@@ -4,3 +4,6 @@
 [submodule "mail-pipeline"]
 	path = mail-pipeline
 	url = https://github.com/giovaz94/mail-pipeline
+[submodule "k8s_smart_deployer"]
+	path = k8s_smart_deployer
+	url = https://github.com/LBacchiani/k8s_smart_deployer.git
