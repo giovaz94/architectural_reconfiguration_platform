@@ -1,0 +1,3 @@
+[submodule "tea-store"]
+	path = tea-store
+	url = https://github.com/giovaz94/tea-store.git
