@@ -1,3 +1,6 @@
 [submodule "tea-store"]
 	path = tea-store
 	url = https://github.com/giovaz94/tea-store.git
+[submodule "mail-pipeline"]
+	path = mail-pipeline
+	url = https://github.com/giovaz94/mail-pipeline
