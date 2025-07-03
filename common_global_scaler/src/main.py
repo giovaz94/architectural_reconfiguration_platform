@@ -35,13 +35,6 @@ if __name__ == '__main__':
     folder_path = os.environ.get("FOLDER_PATH", "manifests_ts")
 
 
-    print(base)
-    print(microservices_mcl)
-    print(microservices_mf)
-    print(scale_config)
-    print(folder_path)
-
-
     #standard predictions
     predictions = [
                 50, 62, 0, 75, 62, 40, 0, 27, 47, 92,
