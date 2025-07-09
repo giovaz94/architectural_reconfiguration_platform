@@ -113,7 +113,8 @@ class SysScaler:
             if inc_idx[i] == 0:
                 continue
             idx = i + 1
-            manifest_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", self._folder_path, f"inc_{idx}")
+            # manifest_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", self._folder_path, f"inc_{idx}")
+            manifest_path = os.path.join(self._folder_path, f"inc_{idx}")
             manifest_files = os.listdir(manifest_path)
 
             num = int(inc_idx[i])

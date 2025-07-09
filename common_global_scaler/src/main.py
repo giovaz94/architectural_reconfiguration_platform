@@ -1,6 +1,7 @@
 
 import numpy as np
 import os
+import sys
 from components.sys_scaler import SysScaler
 from components.guard import Guard
 from components.mixer import Mixer
@@ -18,6 +19,25 @@ def read_scale_config():
         i += 1
     return np.array(rows)
 
+def check_manifest_folder(folder_path): 
+    if not folder_path:
+        print("Error: FOLDER_PATH environment variable is not set.", file=sys.stderr)
+        sys.exit(1)
+
+    if not os.path.exists(folder_path):
+        print(f"Error: Specified folder path does not exist: {folder_path}", file=sys.stderr)
+        sys.exit(1)
+
+    if not os.path.isdir(folder_path):
+        print(f"Error: Specified folder path is not a directory: {folder_path}", file=sys.stderr)
+        sys.exit(1)
+
+    if not os.access(folder_path, os.R_OK):
+        print(f"Error: Cannot read specified folder path: {folder_path}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Manifest folder verified: {folder_path}")
+    return folder_path
 
 if __name__ == '__main__':
     
@@ -33,7 +53,7 @@ if __name__ == '__main__':
 
     # Folder path where the increments are stored
     folder_path = os.environ.get("FOLDER_PATH", "manifests_ts")
-
+    check_manifest_folder(folder_path)
 
     #standard predictions
     predictions = [

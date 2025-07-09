@@ -1,0 +1,5 @@
+FROM giovaz94/cgs-base:latest
+
+COPY ./manifests_mp/ ./my_files/
+
+ENV FOLDER_PATH=/app/my_files
