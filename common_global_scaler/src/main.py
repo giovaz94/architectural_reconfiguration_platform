@@ -52,7 +52,7 @@ if __name__ == '__main__':
     scale_config = read_scale_config()
 
     # Folder path where the increments are stored
-    folder_path = os.environ.get("FOLDER_PATH", "manifests_ts")
+    folder_path = os.environ.get("FOLDER_PATH", "../manifests_ts")
     check_manifest_folder(folder_path)
 
     #standard predictions

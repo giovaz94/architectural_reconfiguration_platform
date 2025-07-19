@@ -4,6 +4,7 @@ from copy import copy
 import yaml
 import os
 import numpy as np
+import kubernetes
 from kubernetes import client, config
 from components.deployment import deploy_pod, delete_pod
 import asyncio
@@ -26,7 +27,7 @@ class SysScaler:
         self._folder_path = folder_path
         self.mcl = self.estimate_mcl(base_config)
         self.curr_config = base_config
-
+    
         if os.environ.get("INCLUSTER_CONFIG") == "true":
             config.load_incluster_config()
         else:
@@ -89,11 +90,14 @@ class SysScaler:
         -----------
         target_mcl -> the target mcl to reach 
         """
-
+        
         if self.total_increment is None:
             increments_to_apply = deltas
         else:
             increments_to_apply = deltas - self.total_increment
+        
+        print(self.total_increment)
+        print(increments_to_apply)
         
         self._apply_increment(increments_to_apply)
 
