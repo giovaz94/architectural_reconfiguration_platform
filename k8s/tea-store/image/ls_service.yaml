@@ -29,7 +29,7 @@ spec:
             - name: K_BIG
               value: "10"
             - name: K
-              value: "5"
+              value: "8"
             - name: IN_CLUSTER
               value: "true"
             - name: PROMETHEUS_SERVICE_ADDRESS

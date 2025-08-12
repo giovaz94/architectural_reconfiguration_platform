@@ -3,6 +3,7 @@ import time
 import threading
 from components.sys_scaler import SysScaler
 from components.mixer import Mixer
+from components.guard_logger import GuardLogger
 from prometheus_api_client import PrometheusConnect
 import numpy as np
 import requests
@@ -36,10 +37,11 @@ class Guard:
         prometheus_url = f"http://{prometheus_service_address}:{prometheus_service_port}"
         self.prometheus_instance = PrometheusConnect(url=prometheus_url)
 
-        self.proactiveness = os.environ.get("PROACTIVE", "false").lower() == 'true' #change to an env variable
+        self.proactiveness = os.environ.get("PROACTIVE", "false").lower() == 'true'
         self.proactive_reactive = self.proactiveness and os.environ.get("PROACTIVE_REACTIVE", "false").lower() == 'true' 
         self.predictions = predictions
         
+        self.logger = GuardLogger.from_env()
 
     def start(self) -> None:
         """
@@ -93,13 +95,12 @@ class Guard:
             latency = self._execute_prometheus_query(f"sum(increase(behaviour_time_execution[{self.sleep}s]))")
             avg_lat = (latency if latency is not None else 0.0)/(completed if (completed is not None and completed > 0) else 1)
             loss = self._execute_prometheus_query(f"sum(increase(message_lost_webUI[{self.sleep}s]))")
-            toPrint = str(iter) + " " + str(avg_lat)
 
             if tot is not None and (tot > 0 or iter > 0): 
                 sleep_time = self.sleep
                 
                 #reactivity
-                measured_workload = (tot if tot is not None else 0.0)/self.sleep#(tot-init_val)/self.sleep
+                measured_workload = (tot if tot is not None else 0.0)/self.sleep
                 target_workload = measured_workload
                 
                 #proactivity
@@ -107,17 +108,29 @@ class Guard:
                     diff = iter-self.sleep
                     pred_workload = sum(self.predictions[diff if diff > 0 else 0:iter])/self.sleep
                     target_workload = pred_workload
-                if self.proactiveness: toPrint += " next: " + str(pred_workload)
-                toPrint += " measured: " + str(measured_workload)
+                
                 config = np.sum(self.scaler.get_current_config()) if not self.monitor_only else self._execute_prometheus_query("sum(total_instances_number)")
+                
                 #proactivity + reactivity:
+                mixed_workload = None
                 if iter > 0 and self.proactive_reactive:
                     measured_conf = self.scaler.calculate_configuration(measured_workload + self.k_big)
-                    target_workload = self.mixer.mix(measured_workload, pred_workload, last_pred_conf, measured_conf)
+                    mixed_workload = self.mixer.mix(measured_workload, pred_workload, last_pred_conf, measured_conf)
+                    target_workload = mixed_workload
                     last_pred_conf = self.scaler.calculate_configuration(pred_workload + self.k_big)
-                if self.proactive_reactive: toPrint += " mixed: " + str(target_workload)
-                toPrint += " tot: " + str(measured_workload * self.sleep) + " comp: " + str(completed) + " rej: " + str(loss) + " supp: " + str(current_mcl) + " inst: " + str(config)
-                print(toPrint, flush=True)
+                
+                self.logger.log_metrics(
+                    iter_num=iter,
+                    avg_lat=avg_lat,
+                    measured_workload=measured_workload,
+                    current_mcl=current_mcl,
+                    config=config,
+                    total_requests=measured_workload * self.sleep,
+                    completed=completed if completed is not None else 0,
+                    loss=loss if loss is not None else 0,
+                    pred_workload=pred_workload if self.proactiveness and iter > 0 else None,
+                    mixed_workload=mixed_workload
+                )
 
                 if self.should_scale(target_workload, current_mcl) and not self.monitor_only:
                     target_conf = self.scaler.calculate_configuration(target_workload + self.k_big)
@@ -126,8 +139,16 @@ class Guard:
                 iter += self.sleep
         
             else: 
-                toPrint += " measured: 0.0 tot: 0 comp: 0 rej: 0 supp: " + str(current_mcl) + " inst: 0"
+                self.logger.log_metrics(
+                    iter_num=iter,
+                    avg_lat=avg_lat,
+                    measured_workload=0.0,
+                    current_mcl=current_mcl,
+                    config=0,
+                    total_requests=0,
+                    completed=0,
+                    loss=0
+                )
                 iter = 0 
-                print(toPrint, flush=True)
 
             time.sleep(sleep_time)

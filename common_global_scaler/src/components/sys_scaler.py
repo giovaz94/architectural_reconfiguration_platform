@@ -95,10 +95,7 @@ class SysScaler:
             increments_to_apply = deltas
         else:
             increments_to_apply = deltas - self.total_increment
-        
-        print(self.total_increment)
-        print(increments_to_apply)
-        
+    
         self._apply_increment(increments_to_apply)
 
         self.total_increment = deltas
